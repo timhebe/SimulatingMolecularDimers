@@ -24,7 +24,7 @@ def interaction_energy(r, r_12, d_1, d_2, g_1, g_2):
     return dipole_orientation * interaction_strength
 
 def spectrum(J_12, omega_1, omega_2, omega_rabi, gamma_1, gamma_2, gamma_12, x_axis_stretch):
-    laser_freqs = x_axis_stretch * 2 * np.pi * np.linspace(-5.0, 5.0, 200)
+    laser_freqs = x_axis_stretch * 2 * np.pi * np.linspace(-5.0, 5.0, 1200)
     excited_state_1 = []
     excited_state_2 = []
     state_J = []
