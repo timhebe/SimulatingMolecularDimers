@@ -4,4 +4,6 @@ matplotlib
 uncertainties
 cython
 pyparsing
+cycler
+kiwisolver
 qutip
