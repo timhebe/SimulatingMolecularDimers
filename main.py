@@ -129,6 +129,46 @@ omega_2_val = st.sidebar.slider('ω2 (MHz)', 1, 20, 10)
 omega_rabi_val = st.sidebar.slider('Rabi frequency (MHz)', 1, 20, 10)
 x_axis_stretch_val = st.sidebar.slider('Laser Frequency Axis Stretch', 0.5, 2.0, 1.0)
 
+# Parameters
+J_12 = J_12_initial
+gamma_12 = gamma_12_initial * 1e-9  # conversion to GHz
+omega_1 = 2 * np.pi * 0.0  # Rabi frequency of system 1 (in GHz)
+omega_2 = 2 * np.pi * 1.0  # Rabi frequency of system 2 (in GHz)
+omega_rabi = 2 * np.pi * 0.01  # driving laser intensity
+
+x_axis_stretch = 4.0
+
+# excited and ground state
+e = basis(2, 1)
+g = basis(2, 0)
+
+# mixing angle
+theta = 0.5 * np.arctan2(J_12, 0.5 * (omega_2 - omega_1))
+
+# basis in the coupled system of the molecules (see PhD thesis Hettich 2002, page 65)
+J = np.sin(theta) * tensor(e, g) + np.cos(theta) * tensor(g, e)
+I = np.cos(theta) * tensor(e, g) - np.sin(theta) * tensor(g, e)
+U = tensor(e, e)
+
+# projectors for molecule 1 and 2
+rho_eg_eg = tensor(e * e.dag(), qeye(2))
+rho_ge_ge = tensor(qeye(2), e * e.dag())
+eg_operator = e * g.dag()
+rho_eg_1 = tensor(eg_operator, qeye(2))
+rho_eg_2 = tensor(qeye(2), eg_operator)
+ge_operator = g * e.dag()
+rho_ge_1 = tensor(ge_operator, qeye(2))
+rho_ge_2 = tensor(qeye(2), ge_operator)
+rho_e1g2_g1e2 = tensor(e, g) * tensor(g, e).dag()
+rho_g1e2_e1g2 = tensor(g, e) * tensor(e, g).dag()
+
+# dipole raising and lowering operators
+S_1_plus = tensor(e * g.dag(), qeye(2))
+S_2_plus = tensor(qeye(2), e * g.dag())
+S_1_minus = tensor(g * e.dag(), qeye(2))
+S_2_minus = tensor(qeye(2), g * e.dag())
+
+"""
 omega_1 = 15e6
 gamma_1 = 17e6
 gamma_2 = 17e6
@@ -148,6 +188,7 @@ S_2_minus = tensor(qeye(2), destroy(2))
 # Get interaction energy and calculate gamma_12
 J_12 = interaction_energy(distance * 1e-9, r_vector, d1_vector, d2_vector, gamma_1, gamma_2)
 gamma_12 = abs(np.sqrt(gamma_1 * gamma_2) * np.dot(d1_vector, d2_vector))
+"""
 
 # Simulate spectrum
 laser_freqs, excited_state_1, excited_state_2, state_J, state_I, state_U = spectrum(J_12, omega_1, omega_2_val * 1e6, omega_rabi_val * 1e6, gamma_1, gamma_2, gamma_12, x_axis_stretch_val)
