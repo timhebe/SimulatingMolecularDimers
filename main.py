@@ -64,35 +64,39 @@ n = 1.5
 k_0 = 2 * np.pi / 590e-9
 
 # Streamlit layout
-st.title("Interactive Dipole-Dipole Visualization and Simulation")
+st.title("Dipole-Dipole Coupling - An Interactive Visualization and Simulation")
 
 st.sidebar.header("Dipole Orientation")
 angle1 = st.sidebar.slider('Angle 1 (°)', 0, 360, 90)
 angle2 = st.sidebar.slider('Angle 2 (°)', 0, 360, 90)
 x = st.sidebar.slider('x (nm)', -8.0, 8.0, -2.0)
 y = st.sidebar.slider('y (nm)', -8.0, 8.0, 0.0)
-show_vector = st.sidebar.checkbox('Show vector $\vec{r}_{12}$', False)
+show_vector = st.sidebar.checkbox(r'Show vector $\vec{r}_{12}$', False)
+
+# Create columns
+col1, col2, col3 = st.columns(3)
 
 # Plot 1: Dipole Orientation
-fig, ax = plt.subplots()
-ax.set_xlim(-5, 5)
-ax.set_ylim(-5, 5)
-ax.set_xlabel('Position (in nm)')
-ax.set_ylabel('Position (in nm)')
-ax.set_aspect('equal')
-ax.grid(True)
-ax.set_title('1. Dipole-Dipole Orientation')
+with col1:
+    fig1, ax1 = plt.subplots(figsize=(5, 5))
+    ax1.set_xlim(-5, 5)
+    ax1.set_ylim(-5, 5)
+    ax1.set_xlabel('Position (in nm)')
+    ax1.set_ylabel('Position (in nm)')
+    ax1.set_aspect('equal')
+    ax1.grid(True)
+    ax1.set_title('1. Dipole-Dipole Orientation')
 
-d1_vector = draw_dipole(ax, (x / 2, y / 2), angle1, color='blue', lw=2)
-d2_vector = draw_dipole(ax, (-x / 2, -y / 2), angle2, color='green', lw=2)
-distance = np.sqrt(x ** 2 + y ** 2)
-ax.text(-4.5, 4, f'distance: {distance:.2f} nm', verticalalignment='top', horizontalalignment='left')
-if show_vector:
-    r_vector = draw_vector(ax, (x / 2, y / 2), (-x / 2, -y / 2), lw=2)
-else:
-    r_vector = np.array((-x / 2, -y / 2)) - np.array((x / 2, y / 2))
+    d1_vector = draw_dipole(ax1, (x / 2, y / 2), angle1, color='blue', lw=2)
+    d2_vector = draw_dipole(ax1, (-x / 2, -y / 2), angle2, color='green', lw=2)
+    distance = np.sqrt(x ** 2 + y ** 2)
+    ax1.text(-4.5, 4, f'distance: {distance:.2f} nm', verticalalignment='top', horizontalalignment='left')
+    if show_vector:
+        r_vector = draw_vector(ax1, (x / 2, y / 2), (-x / 2, -y / 2), lw=2)
+    else:
+        r_vector = np.array((-x / 2, -y / 2)) - np.array((x / 2, y / 2))
 
-st.pyplot(fig)
+    st.pyplot(fig1)
 
 # Plot 2: Dimer Coupling Simulation
 st.sidebar.header("Dimer Coupling Simulation")
@@ -105,23 +109,29 @@ interaction_energy_r = np.vectorize(lambda r: interaction_energy(r, r_vector, d1
 distances = np.linspace(0.2e-9, 20e-9, 200)
 J_12_initial = interaction_energy(distance * 1e-9, r_vector, d1_vector, d2_vector, gamma_1_val * 1e6, gamma_2_val * 1e6)
 
-fig2, ax2 = plt.subplots()
-ax2.plot(distances * 1e9, interaction_energy_r(distances), label='simulation')
-ax2.errorbar(12, 0.95 * 1e9, xerr=2, yerr=0.1 * 1e9, fmt='o', color='blue', label='Hettich et al. 2002')
-ax2.errorbar(22, 2.972 * 1e9, xerr=5, yerr=0.2 * 1e9, fmt='o', color='green', label='Trebbia et al. 2022')
-ax2.errorbar(15, 1.02 * 1e9, xerr=5, yerr=0.1 * 1e9, fmt='o', color='red', label='Lange et al. 2024')
-ax2.scatter([distance], [J_12_initial], c='C0')
-ax2.text(1, 1e13, r'$J_{12} \approx $' + f'{J_12_initial * 1e-9:.1f} GHz')
-gamma_12_initial = abs(np.sqrt(gamma_1_val * 1e6 * gamma_1_val * 1e6) * np.dot(d1_vector, d2_vector))
-ax2.text(1, 1e12, r'$\Gamma_{12} \approx $' + f'{gamma_12_initial * 1e-6:.1f} MHz')
-ax2.set_xlabel('Distance (nm)')
-ax2.set_ylabel(r'$|J_{12}|$ (in Hz)')
-ax2.set_yscale('log' if log_scale_y else 'linear')
-ax2.set_xscale('log' if log_scale_x else 'linear')
-ax2.grid(True)
-ax2.legend(loc="best")
-ax2.set_title('2. Dipole-Dipole Coupling Strength')
-st.pyplot(fig2)
+with col2:
+    fig2, ax2 = plt.subplots(figsize=(5, 5))
+    ax2.plot(distances * 1e9, interaction_energy_r(distances), label='simulation')
+    ax2.errorbar(12, 0.95 * 1e9, xerr=2, yerr=0.1 * 1e9, fmt='o', color='blue', label='Hettich et al. 2002')
+    ax2.errorbar(22, 2.972 * 1e9, xerr=5, yerr=0.2 * 1e9, fmt='o', color='green', label='Trebbia et al. 2022')
+    ax2.errorbar(15, 1.02 * 1e9, xerr=5, yerr=0.1 * 1e9, fmt='o', color='red', label='Lange et al. 2024')
+    ax2.scatter([distance], [J_12_initial], c='C0')
+    ax2.text(1, 1e13, r'$J_{12} \approx $' + f'{J_12_initial * 1e-9:.2f} GHz', verticalalignment='top', horizontalalignment='left')
+    gamma_12_initial = abs(np.sqrt(gamma_1_val * 1e6 * gamma_1_val * 1e6) * np.dot(d1_vector, d2_vector))
+    ax2.text(1, 1e12, r'$\Gamma_{12} \approx $' + f'{gamma_12_initial * 1e-6:.1f} MHz')
+
+    if log_scale_x:
+        ax2.set_xscale('log')
+    if log_scale_y:
+        ax2.set_yscale('log')
+
+    ax2.set_xlabel('Distance (nm)')
+    ax2.set_ylabel('Interaction Energy (GHz)')
+    ax2.legend()
+    ax2.grid(True)
+    ax2.set_title('2. Dimer Coupling Simulation')
+
+    st.pyplot(fig2)
 
 # Plot 3: Dimer Spectra Simulation
 st.sidebar.header("Dimer Spectra Simulation")
@@ -140,6 +150,7 @@ x_axis_stretch = 4.0
 
 # excited and ground state
 e = basis(2, 1)
+g = basis(2, 0)
 g = basis(2, 0)
 
 # mixing angle
@@ -168,36 +179,22 @@ S_2_plus = tensor(qeye(2), e * g.dag())
 S_1_minus = tensor(g * e.dag(), qeye(2))
 S_2_minus = tensor(qeye(2), g * e.dag())
 
-"""
-omega_1 = 15e6
-gamma_1 = 17e6
-gamma_2 = 17e6
 
-# Initialize operators for states and transitions
-rho_eg_eg = tensor(basis(2, 1) * basis(2, 1).dag(), basis(2, 0) * basis(2, 0).dag())
-rho_ge_ge = tensor(basis(2, 0) * basis(2, 0).dag(), basis(2, 1) * basis(2, 1).dag())
-rho_eg_1 = tensor(basis(2, 1) * basis(2, 0).dag(), basis(2, 0) * basis(2, 0).dag())
-rho_ge_1 = rho_eg_1.dag()
-rho_eg_2 = tensor(basis(2, 0) * basis(2, 0).dag(), basis(2, 1) * basis(2, 0).dag())
-rho_ge_2 = rho_eg_2.dag()
-rho_e1g2_g1e2 = tensor(basis(2, 1) * basis(2, 0).dag(), basis(2, 1) * basis(2, 0).dag())
-rho_g1e2_e1g2 = rho_e1g2_g1e2.dag()
-S_1_minus = tensor(destroy(2), qeye(2))
-S_2_minus = tensor(qeye(2), destroy(2))
+with col3:
+    # Simulate spectrum
+    laser_freqs, excited_state_1, excited_state_2, state_J, state_I, state_U = spectrum(J_12, omega_1,
+                                                                                        omega_2_val * 1e6,
+                                                                                        omega_rabi_val * 1e6, gamma_1,
+                                                                                        gamma_2, gamma_12,
+                                                                                        x_axis_stretch_val)
+    spectrum_aggregated = calculate_spectrum(excited_state_1, excited_state_2, state_U)
 
-# Get interaction energy and calculate gamma_12
-J_12 = interaction_energy(distance * 1e-9, r_vector, d1_vector, d2_vector, gamma_1, gamma_2)
-gamma_12 = abs(np.sqrt(gamma_1 * gamma_2) * np.dot(d1_vector, d2_vector))
-"""
+    fig3, ax3 = plt.subplots(figsize=(5, 5))
+    ax3.plot(laser_freqs, spectrum_aggregated, label='spectrum')
+    ax3.set_xlabel('Laser Frequency (GHz)')
+    ax3.set_ylabel('Intensity')
+    ax3.grid(True)
+    ax3.set_title('3. Spectrum Simulation')
+    ax3.legend()
 
-# Simulate spectrum
-laser_freqs, excited_state_1, excited_state_2, state_J, state_I, state_U = spectrum(J_12, omega_1, omega_2_val * 1e6, omega_rabi_val * 1e6, gamma_1, gamma_2, gamma_12, x_axis_stretch_val)
-spectrum_aggregated = calculate_spectrum(excited_state_1, excited_state_2, state_U)
-
-fig3, ax3 = plt.subplots()
-ax3.plot(laser_freqs, spectrum_aggregated)
-ax3.set_xlabel('Laser frequency (MHz)')
-ax3.set_ylabel('Aggregated population')
-ax3.set_title('3. Dimer Spectra Simulation')
-ax3.grid(True)
-st.pyplot(fig3)
+    st.pyplot(fig3)
