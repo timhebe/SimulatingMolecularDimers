@@ -135,9 +135,9 @@ with col2:
 
 # Plot 3: Dimer Spectra Simulation
 st.sidebar.header("Dimer Spectra Simulation")
-omega_2_val = st.sidebar.slider('ω2 (MHz)', 1, 20, 10)
-omega_rabi_val = st.sidebar.slider('Rabi frequency (MHz)', 1, 20, 10)
-x_axis_stretch_val = st.sidebar.slider('Laser Frequency Axis Stretch', 0.5, 2.0, 1.0)
+omega_2_val = st.sidebar.slider('ω2 (GHz)', 1, 20, 10)
+omega_rabi_val = st.sidebar.slider('Rabi frequency (GHz)', 1, 20, 10)
+x_axis_stretch_val = st.sidebar.slider('Laser Frequency Axis Stretch', 0.5, 20.0, 3.0)
 
 # Parameters
 J_12 = J_12_initial
@@ -182,15 +182,26 @@ S_2_minus = tensor(qeye(2), g * e.dag())
 
 with col3:
     # Simulate spectrum
-    laser_freqs, excited_state_1, excited_state_2, state_J, state_I, state_U = spectrum(J_12, omega_1,
-                                                                                        omega_2_val * 1e6,
-                                                                                        omega_rabi_val * 1e6, gamma_1,
-                                                                                        gamma_2, gamma_12,
+    laser_freqs, excited_state_1, excited_state_2, state_J, state_I, state_U = spectrum(J_12, omega_1, omega_2_val,
+                                                                                        omega_rabi_val,
+                                                                                        gamma_1 * 1e-6,
+                                                                                        gamma_2 * 1e-6, gamma_12,
                                                                                         x_axis_stretch_val)
-    spectrum_aggregated = calculate_spectrum(excited_state_1, excited_state_2, state_U)
+    spec = calculate_spectrum(excited_state_1, excited_state_2, state_U)
 
     fig3, ax3 = plt.subplots(figsize=(5, 5))
-    ax3.plot(laser_freqs, spectrum_aggregated, label='spectrum')
+
+    # Plotting
+    ax3.plot(laser_freqs, excited_state_1, label=r'$\rho_{eg,eg}$', color="orange")  # molecule 1 excited
+    ax3.plot(laser_freqs, excited_state_2, label=r'$\rho_{ge,ge}$', color="deepskyblue")  # molecule 2 excited
+    # line_J, = ax3.plot(laser_freqs, state_J, label='state J', color="deepskyblue", linewidth=2.0)
+    # line_I, = ax3.plot(laser_freqs, state_I, label='state I', color="orange", linewidth=2.0)
+    ax3.plot(laser_freqs, state_U, label=r'$\rho_{ee,ee}$', color="green", linewidth=2.0)  # state U
+    ax3.plot(laser_freqs, spec, label=r'$\rho_{eg,eg} + \rho_{ge,ge} + 2 \cdot \rho_{ee,ee}$', color="black")  # , linewidth=2.0)
+
+    # saturation_parameter_text = fig.text(x_pos_slider + 2 * x_spacing, y_pos_slider + 3 * y_spacing, r"$S_0 = $" + str(round(2 * omega_rabi ** 2 / (gamma_1 * 1e-9), 1)))  # , ha='center')
+
+    # ax3.plot(laser_freqs, spectrum_aggregated, label='spectrum')
     ax3.set_xlabel('Laser Frequency (GHz)')
     ax3.set_ylabel('Intensity')
     ax3.grid(True)
